@@ -79,12 +79,10 @@ fn mix_columns(input: &[u8]) -> Vec<u8> {
             column.push(input[j * 4 + i]);
         }
         let newcol = mix_column(column.as_slice());
-        println!("{}", newcol);
         for j in range(0, 4) {
             *result.get_mut(j * 4 + i) = newcol[j];
         }
     }
-    println!("{}", result);
     result
 }
 
