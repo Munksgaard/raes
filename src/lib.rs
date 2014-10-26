@@ -20,6 +20,12 @@ static SBOX: [u8, ..256] = [
      0xE1, 0xF8, 0x98, 0x11, 0x69, 0xD9, 0x8E, 0x94, 0x9B, 0x1E, 0x87, 0xE9, 0xCE, 0x55, 0x28, 0xDF,
      0x8C, 0xA1, 0x89, 0x0D, 0xBF, 0xE6, 0x42, 0x68, 0x41, 0x99, 0x2D, 0x0F, 0xB0, 0x54, 0xBB, 0x16];
 
+// From www.formaestudio.com/rijndaelinspector/archivos/Rijndael_Animation_v4_eng.swfg
+static RCON: [[u8, ..4], ..10] = [
+    [0x01, 0, 0, 0], [0x02, 0, 0, 0], [0x04, 0, 0, 0], [0x08, 0, 0, 0],
+    [0x10, 0, 0, 0], [0x20, 0, 0, 0], [0x40, 0, 0, 0], [0x80, 0, 0, 0],
+    [0x1B, 0, 0, 0], [0x36, 0, 0, 0]];
+
 #[allow(dead_code)]
 fn sub_bytes(input: &[u8]) -> Vec<u8> {
     let result: Vec<u8> = input.iter().map(|&x| SBOX[x as uint]).collect();
@@ -112,6 +118,30 @@ fn round_key(prev: &[u8], rcon: &[u8]) -> Vec<u8> {
     result
 }
 
+#[allow(dead_code)]
+fn encrypt(plaintext: &[u8], key: &[u8]) -> Vec<u8> {
+    assert_eq!(plaintext.len(), 16);
+    assert_eq!(key.len(), 16);
+
+    let mut tmp = add_round_key(plaintext, key);
+    let mut key = key.to_vec();
+
+    for round in range(0u, 9) {
+        tmp = sub_bytes(tmp.as_slice());
+        tmp = shift_rows(tmp.as_slice());
+        tmp = mix_columns(tmp.as_slice());
+        key = round_key(key.as_slice(), &RCON[round]);
+        tmp = add_round_key(tmp.as_slice(), key.as_slice());
+    }
+
+    tmp = sub_bytes(tmp.as_slice());
+    tmp = shift_rows(tmp.as_slice());
+    key = round_key(key.as_slice(), &RCON[9]);
+    tmp = add_round_key(tmp.as_slice(), key.as_slice());
+
+    tmp
+}
+
 #[cfg(test)]
 mod test {
     use super::SBOX;
@@ -121,6 +151,7 @@ mod test {
     use super::mix_columns;
     use super::add_round_key;
     use super::round_key;
+    use super::encrypt;
 
     #[test]
     fn test_sbox() {
@@ -210,5 +241,23 @@ mod test {
                              0x95, 0xB9, 0x80, 0xF6,
                              0xF2, 0x43, 0x7A, 0x7F];
         assert_eq!(round_key(res1.as_slice(), rcon2), expected2);
+    }
+
+    #[test]
+    // Example from  www.formaestudio.com/rijndaelinspector/archivos/Rijndael_Animation_v4_eng.swfg
+    fn test_encrypt() {
+        let plain = &[0x32, 0x88, 0x31, 0xE0,
+                      0x43, 0x5A, 0x31, 0x37,
+                      0xF6, 0x30, 0x98, 0x07,
+                      0xA8, 0x8D, 0xA2, 0x34];
+        let key = &[0x2B, 0x28, 0xAB, 0x09,
+                    0x7E, 0xAE, 0xF7, 0xCF,
+                    0x15, 0xD2, 0x15, 0x4F,
+                    0x16, 0xA6, 0x88, 0x3C];
+        let expected = vec![0x39, 0x02, 0xDC, 0x19,
+                            0x25, 0xDC, 0x11, 0x6A,
+                            0x84, 0x09, 0x85, 0x0B,
+                            0x1D, 0xFB, 0x97, 0x32];
+        assert_eq!(encrypt(plain, key), expected);
     }
 }
