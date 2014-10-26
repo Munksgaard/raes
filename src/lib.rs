@@ -127,6 +127,11 @@ mod test {
         let expected = vec![142, 77, 161, 188];
         assert_eq!(mix_column(input.as_slice()), expected);
 
+        let input = vec![0xD4, 0xBF, 0x5D, 0x30];
+        let expected = vec![0x04, 0x66, 0x81, 0xE5];
+        assert_eq!(mix_column(input.as_slice()), expected);
+    }
+
     #[test]
     fn test_mix_columns() {
         let input = vec![0xD4, 0xE0, 0xB8, 0x1E,
