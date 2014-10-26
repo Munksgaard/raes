@@ -95,6 +95,23 @@ fn add_round_key(input: &[u8], round_key: &[u8]) -> Vec<u8> {
     Vec::from_fn(16, |idx| input[idx] ^ round_key[idx])
 }
 
+#[allow(dead_code)]
+fn round_key(prev: &[u8], rcon: &[u8]) -> Vec<u8> {
+    assert_eq!(prev.len(), 16);
+    assert_eq!(rcon.len(), 4);
+
+    let mut result = Vec::from_elem(16, 0u8);
+    for idx in range(0, 16) {
+        *result.get_mut(idx) = if idx % 4 == 0 {
+            SBOX[prev[(idx + 7) % 16] as uint] ^ prev[idx] ^ rcon[idx / 4]
+        } else {
+            prev[idx] ^ result[idx-1]
+        }
+    }
+
+    result
+}
+
 #[cfg(test)]
 mod test {
     use super::SBOX;
@@ -103,6 +120,7 @@ mod test {
     use super::mix_column;
     use super::mix_columns;
     use super::add_round_key;
+    use super::round_key;
 
     #[test]
     fn test_sbox() {
@@ -170,5 +188,27 @@ mod test {
                             0xF2, 0x2B, 0x43, 0x49];
 
         assert_eq!(add_round_key(input, round_key), expected);
+    }
+
+    #[test]
+    fn test_round_key() {
+        let input = &[0x2B, 0x28, 0xAB, 0x09,
+                      0x7E, 0xAE, 0xF7, 0xCF,
+                      0x15, 0xD2, 0x15, 0x4F,
+                      0x16, 0xA6, 0x88, 0x3C];
+        let rcon1 = &[0x01, 0x00, 0x00, 0x00];
+        let expected = vec![0xA0, 0x88, 0x23, 0x2A,
+                            0xFA, 0x54, 0xA3, 0x6C,
+                            0xFE, 0x2C, 0x39, 0x76,
+                            0x17, 0xB1, 0x39, 0x05];
+        let res1 = round_key(input, rcon1);
+        assert_eq!(res1, expected);
+
+        let rcon2 = &[0x02, 0x00, 0x00, 0x00];
+        let expected2 = vec![0xF2, 0x7A, 0x59, 0x73,
+                             0xC2, 0x96, 0x35, 0x59,
+                             0x95, 0xB9, 0x80, 0xF6,
+                             0xF2, 0x43, 0x7A, 0x7F];
+        assert_eq!(round_key(res1.as_slice(), rcon2), expected2);
     }
 }
