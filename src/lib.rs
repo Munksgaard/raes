@@ -66,12 +66,34 @@ fn mix_column(input: &[u8]) -> Vec<u8> {
     result
 }
 
+#[allow(dead_code)]
+fn mix_columns(input: &[u8]) -> Vec<u8> {
+    assert_eq!(input.len(), 16);
+
+    let mut result = Vec::from_elem(16, 0u8);
+
+    for i in range(0, 4) {
+        let mut column = Vec::with_capacity(4);
+        for j in range(0, 4) {
+            column.push(input[j * 4 + i]);
+        }
+        let newcol = mix_column(column.as_slice());
+        println!("{}", newcol);
+        for j in range(0, 4) {
+            *result.get_mut(j * 4 + i) = newcol[j];
+        }
+    }
+    println!("{}", result);
+    result
+}
+
 #[cfg(test)]
 mod test {
     use super::SBOX;
     use super::sub_bytes;
     use super::shift_rows;
     use super::mix_column;
+    use super::mix_columns;
 
     #[test]
     fn test_sbox() {
@@ -104,5 +126,17 @@ mod test {
         let input = vec![0xdb, 0x13, 0x53, 0x45];
         let expected = vec![142, 77, 161, 188];
         assert_eq!(mix_column(input.as_slice()), expected);
+
+    #[test]
+    fn test_mix_columns() {
+        let input = vec![0xD4, 0xE0, 0xB8, 0x1E,
+                         0xBF, 0xB4, 0x41, 0x27,
+                         0x5D, 0x52, 0x11, 0x98,
+                         0x30, 0xAE, 0xF1, 0xE5];
+        let expected = vec![0x04, 0xE0, 0x48, 0x28,
+                            0x66, 0xCB, 0xF8, 0x06,
+                            0x81, 0x19, 0xD3, 0x26,
+                            0xE5, 0x9A, 0x7A, 0x4C];
+        assert_eq!(mix_columns(input.as_slice()), expected);
     }
 }
