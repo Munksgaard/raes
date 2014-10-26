@@ -71,7 +71,7 @@ mod test {
     use super::SBOX;
     use super::sub_bytes;
     use super::shift_rows;
-    use super::mix_columns;
+    use super::mix_column;
 
     #[test]
     fn test_sbox() {
@@ -100,9 +100,9 @@ mod test {
     }
 
     #[test]
-    fn test_mix_columns() {
+    fn test_mix_column() {
         let input = vec![0xdb, 0x13, 0x53, 0x45];
         let expected = vec![142, 77, 161, 188];
-        assert_eq!(mix_columns(input.as_slice()), expected);
+        assert_eq!(mix_column(input.as_slice()), expected);
     }
 }
