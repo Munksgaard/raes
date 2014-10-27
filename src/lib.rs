@@ -67,6 +67,17 @@ fn shift_rows(input: &[u8]) -> Vec<u8> {
     result
 }
 
+#[allow(dead_code)]
+fn shift_rows_inv(input: &[u8]) -> Vec<u8> {
+    assert_eq!(input.len(), 16);
+
+    let result: Vec<u8> = Vec::from_fn(16, |idx| {
+        input[(idx - (4 * idx)) % 16]
+    });
+
+    result
+}
+
 // Adapted from Wikipedia: http://en.wikipedia.org/w/index.php?title=Rijndael_mix_columns&oldid=606147318#Implementation_example
 fn mix_column(input: &[u8]) -> Vec<u8> {
     assert_eq!(input.len(), 4);
@@ -156,6 +167,7 @@ mod test {
     use super::sub_bytes;
     use super::sub_bytes_inv;
     use super::shift_rows;
+    use super::shift_rows_inv;
     use super::mix_column;
     use super::mix_columns;
     use super::add_round_key;
@@ -193,6 +205,19 @@ mod test {
                             0xB8, 0x41, 0x11, 0xF1,
                             0x1E, 0x27, 0x98, 0xE5];
         assert_eq!(shift_rows(input), expected);
+    }
+
+    #[test]
+    fn test_shift_rows_inv() {
+        let input = &[0xD4, 0xBF, 0x5D, 0x30,
+                      0xE0, 0xB4, 0x52, 0xAE,
+                      0xB8, 0x41, 0x11, 0xF1,
+                      0x1E, 0x27, 0x98, 0xE5];
+        let expected = vec![0xD4, 0x27, 0x11, 0xAE,
+                            0xE0, 0xBF, 0x98, 0xF1,
+                            0xB8, 0xB4, 0x5D, 0xE5,
+                            0x1E, 0x41, 0x52, 0x30];
+        assert_eq!(shift_rows_inv(input), expected);
     }
 
     #[test]
