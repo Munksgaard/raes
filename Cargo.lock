@@ -1,4 +1,4 @@
 [root]
-name = "rust_aes"
+name = "raes"
 version = "0.0.1"
 

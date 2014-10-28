@@ -1,5 +1,5 @@
 [package]
 
-name = "rust_aes"
+name = "raes"
 version = "0.0.1"
 authors = ["Philip Munksgaard <pmunksgaard@gmail.com>"]

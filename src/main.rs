@@ -1,4 +1,4 @@
-extern crate rust_aes;
+extern crate raes;
 
 #[cfg(not(test))]
 fn main() {
