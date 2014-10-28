@@ -3,7 +3,7 @@
 mod aes;
 
 #[allow(dead_code)]
-pub fn encrypt_aes_ecb(plain: &[u8], key: &[u8]) -> Vec<u8> {
+pub fn encode_aes_ecb(plain: &[u8], key: &[u8]) -> Vec<u8> {
     assert_eq!(key.len(), 16);
     assert!(plain.len() % 16 == 0);
 
@@ -15,7 +15,7 @@ pub fn encrypt_aes_ecb(plain: &[u8], key: &[u8]) -> Vec<u8> {
 }
 
 #[allow(dead_code)]
-pub fn decrypt_aes_ecb(cipher: &[u8], key: &[u8]) -> Vec<u8> {
+pub fn decode_aes_ecb(cipher: &[u8], key: &[u8]) -> Vec<u8> {
     assert_eq!(key.len(), 16);
     assert!(cipher.len() % 16 == 0);
 
