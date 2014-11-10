@@ -71,12 +71,12 @@ fn main() {
 fn encode(input: &mut Reader, key: Option<String>) {
     let k = match key {
         Some(k) => k,
-        _ => fail!("Need key")
+        _ => panic!("Need key")
     };
 
     let v = match input.read_to_end() {
         Ok(m) => m,
-        Err(err) => fail!("Read failed: {}", err)
+        Err(err) => panic!("Read failed: {}", err)
     };
 
     let mut out = stdout();
@@ -87,12 +87,12 @@ fn encode(input: &mut Reader, key: Option<String>) {
 fn decode(input: &mut Reader, key: Option<String>) {
     let k = match key {
         Some(k) => k,
-        _ => fail!("Need key")
+        _ => panic!("Need key")
     };
 
     let v = match input.read_to_end() {
         Ok(m) => m,
-        Err(err) => fail!("Read failed: {}", err)
+        Err(err) => panic!("Read failed: {}", err)
     };
 
     let mut out = stdout();
@@ -101,5 +101,5 @@ fn decode(input: &mut Reader, key: Option<String>) {
 }
 
 fn warn(message: &str) {
-    fail!("{}: {}", os::args().get(0), message);
+    panic!("{}: {}", os::args().get(0), message);
 }
