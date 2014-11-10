@@ -224,7 +224,7 @@ fn round_key(prev: &[u8], rcon: &[u8]) -> Vec<u8> {
 
     let mut result = Vec::from_elem(16, 0u8);
     for idx in range(0, 16) {
-        *result.get_mut(idx) = if idx < 4 {
+        *result.get_mut(idx).expect("Impossible") = if idx < 4 {
             SBOX[prev[((1 + idx) % 4) + 12] as uint] ^ prev[idx] ^ rcon[idx]
         } else {
             prev[idx] ^ result[idx-4]
