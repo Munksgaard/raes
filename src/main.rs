@@ -16,14 +16,14 @@ static VERSION: &'static str = "0.0.1";
 #[deriving(Eq, PartialEq)]
 enum Mode {
     Help,
-    Encode,
-    Decode,
+    Encrypt,
+    Decrypt,
 }
 
 fn main() {
     let opts = [
-        optflag("e", "encode", "encode plaintext"),
-        optflag("d", "decode", "decode ciphertext"),
+        optflag("e", "encrypt", "encrypt plaintext"),
+        optflag("d", "decrypt", "decrypt ciphertext"),
         optflag("h", "help", "print help"),
         optopt("k", "key", "key to use", "KEY")];
 
@@ -33,14 +33,14 @@ fn main() {
         let version = format!("{} {}", NAME, VERSION);
         let program = args[0].as_slice();
         let arguments = "[SOURCE]... [DEST]...";
-        let brief = "Encode or decode a file using AES-128. Only ECB mode is supported at the moment.";
+        let brief = "Encrypt or decrypt a file using AES-128. Only ECB mode is supported at the moment.";
         let help = format!("{}\n\nUsage:\n  {} {}\n\n{}",
                            version, program, arguments, usage(brief, opts),);
         let mode =
-            if m.opt_present("decode") {
-                Decode
-            } else if m.opt_present("encode") {
-                Encode
+            if m.opt_present("decrypt") {
+                Decrypt
+            } else if m.opt_present("encrypt") {
+                Encrypt
             } else {
                 Help
             };
@@ -60,15 +60,15 @@ fn main() {
             };
 
         match mode {
-            Decode => decode(input, key),
-            Encode => encode(input, key),
+            Decrypt => decrypt(input, key),
+            Encrypt => encrypt(input, key),
             Help => println!("{}", help)};
 
         Ok(0u8)
     }).map_err(|message| warn(message.as_slice())).unwrap();
 }
 
-fn encode(input: &mut Reader, key: Option<String>) {
+fn encrypt(input: &mut Reader, key: Option<String>) {
     let k = match key {
         Some(k) => k,
         _ => panic!("Need key")
@@ -80,11 +80,11 @@ fn encode(input: &mut Reader, key: Option<String>) {
     };
 
     let mut out = stdout();
-    let bytes = raes::encode_aes_ecb(v.as_slice(), k.as_bytes());
+    let bytes = raes::encrypt_aes_ecb(v.as_slice(), k.as_bytes());
     out.write(bytes.as_slice()).unwrap();
 }
 
-fn decode(input: &mut Reader, key: Option<String>) {
+fn decrypt(input: &mut Reader, key: Option<String>) {
     let k = match key {
         Some(k) => k,
         _ => panic!("Need key")
@@ -96,7 +96,7 @@ fn decode(input: &mut Reader, key: Option<String>) {
     };
 
     let mut out = stdout();
-    let bytes = raes::decode_aes_ecb(v.as_slice(), k.as_bytes());
+    let bytes = raes::decrypt_aes_ecb(v.as_slice(), k.as_bytes());
     out.write(bytes.as_slice()).unwrap();
 }
 
