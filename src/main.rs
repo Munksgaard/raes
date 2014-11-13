@@ -14,7 +14,7 @@ static NAME: &'static str = "raes";
 static VERSION: &'static str = "0.0.1";
 
 #[deriving(Eq, PartialEq)]
-enum Mode {
+enum Operation {
     Help,
     Encrypt,
     Decrypt,
@@ -36,7 +36,7 @@ fn main() {
         let brief = "Encrypt or decrypt a file using AES-128. Only ECB mode is supported at the moment.";
         let help = format!("{}\n\nUsage:\n  {} {}\n\n{}",
                            version, program, arguments, usage(brief, opts),);
-        let mode =
+        let operation =
             if m.opt_present("decrypt") {
                 Decrypt
             } else if m.opt_present("encrypt") {
@@ -59,7 +59,7 @@ fn main() {
                 &mut file_buf as &mut Reader
             };
 
-        match mode {
+        match operation {
             Decrypt => decrypt(input, key),
             Encrypt => encrypt(input, key),
             Help => println!("{}", help)};
