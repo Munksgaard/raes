@@ -1,5 +1,3 @@
-#![feature(slicing_syntax)]
-
 mod aes;
 
 #[allow(dead_code)]
