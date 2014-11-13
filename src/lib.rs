@@ -1,25 +1,39 @@
 mod aes;
+mod ecb;
 
-#[allow(dead_code)]
-pub fn encrypt_aes_ecb(plain: &[u8], key: &[u8]) -> Vec<u8> {
-    assert_eq!(key.len(), 16);
-    assert!(plain.len() % 16 == 0);
 
-    let mut result: Vec<u8> = Vec::new();
-    for chunk in plain.chunks(16) {
-        result.push_all(aes::encrypt(chunk, key).as_slice());
-    }
-    result
+pub enum Cipher {
+    AES,
+}
+
+pub enum Mode {
+    ECB,
 }
 
 #[allow(dead_code)]
-pub fn decrypt_aes_ecb(cipher: &[u8], key: &[u8]) -> Vec<u8> {
+pub fn encrypt(cipher: Cipher, mode: Mode, input: &[u8], key: &[u8]) -> Vec<u8> {
     assert_eq!(key.len(), 16);
-    assert!(cipher.len() % 16 == 0);
+    assert!(input.len() % 16 == 0);
 
-    let mut result: Vec<u8> = Vec::new();
-    for chunk in cipher.chunks(16) {
-        result.push_all(aes::decrypt(chunk, key).as_slice());
+    let f = match cipher {
+        AES => aes::encrypt,
+    };
+
+    match mode {
+        ECB => ecb::ecb(|x,y| f(x,y), input, key),
     }
-    result
+}
+
+#[allow(dead_code)]
+pub fn decrypt(cipher: Cipher, mode: Mode, input: &[u8], key: &[u8]) -> Vec<u8> {
+    assert_eq!(key.len(), 16);
+    assert!(input.len() % 16 == 0);
+
+    let f = match cipher {
+        AES => aes::decrypt,
+    };
+
+    match mode {
+        ECB => ecb::ecb(|x,y| f(x,y), input, key),
+    }
 }

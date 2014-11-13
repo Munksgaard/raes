@@ -1,4 +1,5 @@
 #![allow(dead_code)]
+#![feature(globs)]
 
 extern crate raes;
 
@@ -7,8 +8,9 @@ extern crate getopts;
 use std::os;
 use std::io::{File, stdout};
 use std::io::stdio::stdin_raw;
+use std::ascii::OwnedAsciiExt;
 use getopts::{getopts, optflag, optopt, usage};
-
+use raes::{Cipher, Mode, ECB, AES};
 
 static NAME: &'static str = "raes";
 static VERSION: &'static str = "0.0.1";
@@ -25,7 +27,9 @@ fn main() {
         optflag("e", "encrypt", "encrypt plaintext"),
         optflag("d", "decrypt", "decrypt ciphertext"),
         optflag("h", "help", "print help"),
-        optopt("k", "key", "key to use", "KEY")];
+        optopt("k", "key", "key to use", "KEY"),
+        optopt("m", "mode", "mode to use (default ECB)", "MODE"),
+        ];
 
     let args: Vec<String> = os::args().iter().map(|x| x.to_string()).collect();
 
@@ -59,16 +63,22 @@ fn main() {
                 &mut file_buf as &mut Reader
             };
 
+        let cipher = raes::AES;
+        let mode = match m.opt_str("mode").unwrap_or("ECB".to_string()).into_ascii_upper().as_slice() {
+            "ECB" => raes::ECB,
+            _ => panic!("Unsupported mode"),
+        };
+
         match operation {
-            Decrypt => decrypt(input, key),
-            Encrypt => encrypt(input, key),
+            Decrypt => decrypt(cipher, mode, input, key),
+            Encrypt => encrypt(cipher, mode, input, key),
             Help => println!("{}", help)};
 
         Ok(0u8)
     }).map_err(|message| warn(message.as_slice())).unwrap();
 }
 
-fn encrypt(input: &mut Reader, key: Option<String>) {
+fn encrypt(cipher: Cipher, mode: Mode, input: &mut Reader, key: Option<String>) {
     let k = match key {
         Some(k) => k,
         _ => panic!("Need key")
@@ -80,11 +90,11 @@ fn encrypt(input: &mut Reader, key: Option<String>) {
     };
 
     let mut out = stdout();
-    let bytes = raes::encrypt_aes_ecb(v.as_slice(), k.as_bytes());
+    let bytes = raes::encrypt(cipher, mode, v.as_slice(), k.as_bytes());
     out.write(bytes.as_slice()).unwrap();
 }
 
-fn decrypt(input: &mut Reader, key: Option<String>) {
+fn decrypt(cipher: Cipher, mode: Mode, input: &mut Reader, key: Option<String>) {
     let k = match key {
         Some(k) => k,
         _ => panic!("Need key")
@@ -96,7 +106,7 @@ fn decrypt(input: &mut Reader, key: Option<String>) {
     };
 
     let mut out = stdout();
-    let bytes = raes::decrypt_aes_ecb(v.as_slice(), k.as_bytes());
+    let bytes = raes::decrypt(cipher, mode, v.as_slice(), k.as_bytes());
     out.write(bytes.as_slice()).unwrap();
 }
 
