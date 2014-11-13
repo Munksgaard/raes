@@ -11,7 +11,7 @@ pub enum Mode {
 }
 
 #[allow(dead_code)]
-pub fn encrypt(cipher: Cipher, mode: Mode, input: &[u8], key: &[u8]) -> Vec<u8> {
+pub fn encrypt(cipher: Cipher, mode: Mode, input: &[u8], key: &[u8], iv: Option<Vec<u8>>) -> Vec<u8> {
     assert_eq!(key.len(), 16);
     assert!(input.len() % 16 == 0);
 
@@ -25,7 +25,7 @@ pub fn encrypt(cipher: Cipher, mode: Mode, input: &[u8], key: &[u8]) -> Vec<u8> 
 }
 
 #[allow(dead_code)]
-pub fn decrypt(cipher: Cipher, mode: Mode, input: &[u8], key: &[u8]) -> Vec<u8> {
+pub fn decrypt(cipher: Cipher, mode: Mode, input: &[u8], key: &[u8], iv: Option<Vec<u8>>) -> Vec<u8> {
     assert_eq!(key.len(), 16);
     assert!(input.len() % 16 == 0);
 

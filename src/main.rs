@@ -29,6 +29,7 @@ fn main() {
         optflag("h", "help", "print help"),
         optopt("k", "key", "key to use", "KEY"),
         optopt("m", "mode", "mode to use (default ECB)", "MODE"),
+        optopt("", "iv", "initialization vector", "IV")
         ];
 
     let args: Vec<String> = os::args().iter().map(|x| x.to_string()).collect();
@@ -69,16 +70,18 @@ fn main() {
             _ => panic!("Unsupported mode"),
         };
 
+        let iv = m.opt_str("iv").map(|s| s.into_bytes());
+
         match operation {
-            Decrypt => decrypt(cipher, mode, input, key),
-            Encrypt => encrypt(cipher, mode, input, key),
+            Decrypt => decrypt(cipher, mode, input, key, iv),
+            Encrypt => encrypt(cipher, mode, input, key, iv),
             Help => println!("{}", help)};
 
         Ok(0u8)
     }).map_err(|message| warn(message.as_slice())).unwrap();
 }
 
-fn encrypt(cipher: Cipher, mode: Mode, input: &mut Reader, key: Option<String>) {
+fn encrypt(cipher: Cipher, mode: Mode, input: &mut Reader, key: Option<String>, iv: Option<Vec<u8>>) {
     let k = match key {
         Some(k) => k,
         _ => panic!("Need key")
@@ -90,11 +93,11 @@ fn encrypt(cipher: Cipher, mode: Mode, input: &mut Reader, key: Option<String>) 
     };
 
     let mut out = stdout();
-    let bytes = raes::encrypt(cipher, mode, v.as_slice(), k.as_bytes());
+    let bytes = raes::encrypt(cipher, mode, v.as_slice(), k.as_bytes(), iv);
     out.write(bytes.as_slice()).unwrap();
 }
 
-fn decrypt(cipher: Cipher, mode: Mode, input: &mut Reader, key: Option<String>) {
+fn decrypt(cipher: Cipher, mode: Mode, input: &mut Reader, key: Option<String>, iv: Option<Vec<u8>>) {
     let k = match key {
         Some(k) => k,
         _ => panic!("Need key")
@@ -106,7 +109,7 @@ fn decrypt(cipher: Cipher, mode: Mode, input: &mut Reader, key: Option<String>) 
     };
 
     let mut out = stdout();
-    let bytes = raes::decrypt(cipher, mode, v.as_slice(), k.as_bytes());
+    let bytes = raes::decrypt(cipher, mode, v.as_slice(), k.as_bytes(), iv);
     out.write(bytes.as_slice()).unwrap();
 }
 
