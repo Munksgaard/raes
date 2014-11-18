@@ -1,6 +1,6 @@
 mod aes;
 mod ecb;
-
+mod cbc;
 
 pub enum Cipher {
     AES,
@@ -8,6 +8,7 @@ pub enum Cipher {
 
 pub enum Mode {
     ECB,
+    CBC,
 }
 
 #[allow(dead_code)]
@@ -21,6 +22,7 @@ pub fn encrypt(cipher: Cipher, mode: Mode, input: &[u8], key: &[u8], iv: Option<
 
     match mode {
         ECB => ecb::ecb(|x,y| f(x,y), input, key),
+        CBC => cbc::encrypt_cbc(|x,y| f(x,y), input, key, iv.unwrap().as_slice()),
     }
 }
 
@@ -35,5 +37,6 @@ pub fn decrypt(cipher: Cipher, mode: Mode, input: &[u8], key: &[u8], iv: Option<
 
     match mode {
         ECB => ecb::ecb(|x,y| f(x,y), input, key),
+        CBC => cbc::decrypt_cbc(|x,y| f(x,y), input, key, iv.unwrap().as_slice()),
     }
 }

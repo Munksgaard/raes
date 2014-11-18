@@ -67,6 +67,7 @@ fn main() {
         let cipher = raes::AES;
         let mode = match m.opt_str("mode").unwrap_or("ECB".to_string()).into_ascii_upper().as_slice() {
             "ECB" => raes::ECB,
+            "CBC" => raes::CBC,
             _ => panic!("Unsupported mode"),
         };
 
