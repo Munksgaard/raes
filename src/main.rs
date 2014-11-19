@@ -34,20 +34,20 @@ fn main() {
 
     let args: Vec<String> = os::args().iter().map(|x| x.to_string()).collect();
 
-    getopts(args.tail(), opts).map_err(|e| format!("{}", e)).and_then(|m| {
+    getopts(args.tail(), &opts).map_err(|e| format!("{}", e)).and_then(|m| {
         let version = format!("{} {}", NAME, VERSION);
         let program = args[0].as_slice();
         let arguments = "[SOURCE]... [DEST]...";
         let brief = "Encrypt or decrypt a file using AES-128. Only ECB mode is supported at the moment.";
         let help = format!("{}\n\nUsage:\n  {} {}\n\n{}",
-                           version, program, arguments, usage(brief, opts),);
+                           version, program, arguments, usage(brief, &opts),);
         let operation =
             if m.opt_present("decrypt") {
-                Decrypt
+                Operation::Decrypt
             } else if m.opt_present("encrypt") {
-                Encrypt
+                Operation::Encrypt
             } else {
-                Help
+                Operation::Help
             };
 
         let key = m.opt_str("key");
@@ -64,19 +64,19 @@ fn main() {
                 &mut file_buf as &mut Reader
             };
 
-        let cipher = raes::AES;
+        let cipher = raes::Cipher::AES;
         let mode = match m.opt_str("mode").unwrap_or("ECB".to_string()).into_ascii_upper().as_slice() {
-            "ECB" => raes::ECB,
-            "CBC" => raes::CBC,
+            "ECB" => raes::Mode::ECB,
+            "CBC" => raes::Mode::CBC,
             _ => panic!("Unsupported mode"),
         };
 
         let iv = m.opt_str("iv").map(|s| s.into_bytes());
 
         match operation {
-            Decrypt => decrypt(cipher, mode, input, key, iv),
-            Encrypt => encrypt(cipher, mode, input, key, iv),
-            Help => println!("{}", help)};
+            Operation::Decrypt => decrypt(cipher, mode, input, key, iv),
+            Operation::Encrypt => encrypt(cipher, mode, input, key, iv),
+            Operation::Help => println!("{}", help)};
 
         Ok(0u8)
     }).map_err(|message| warn(message.as_slice())).unwrap();

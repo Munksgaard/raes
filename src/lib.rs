@@ -17,12 +17,12 @@ pub fn encrypt(cipher: Cipher, mode: Mode, input: &[u8], key: &[u8], iv: Option<
     assert!(input.len() % 16 == 0);
 
     let f = match cipher {
-        AES => aes::encrypt,
+        Cipher::AES => aes::encrypt,
     };
 
     match mode {
-        ECB => ecb::ecb(|x,y| f(x,y), input, key),
-        CBC => cbc::encrypt_cbc(|x,y| f(x,y), input, key, iv.unwrap().as_slice()),
+        Mode::ECB => ecb::ecb(|x,y| f(x,y), input, key),
+        Mode::CBC => cbc::encrypt_cbc(|x,y| f(x,y), input, key, iv.unwrap().as_slice()),
     }
 }
 
@@ -32,12 +32,12 @@ pub fn decrypt(cipher: Cipher, mode: Mode, input: &[u8], key: &[u8], iv: Option<
     assert!(input.len() % 16 == 0);
 
     let f = match cipher {
-        AES => aes::decrypt,
+        Cipher::AES => aes::decrypt,
     };
 
     match mode {
-        ECB => ecb::ecb(|x,y| f(x,y), input, key),
-        CBC => cbc::decrypt_cbc(|x,y| f(x,y), input, key, iv.unwrap().as_slice()),
+        Mode::ECB => ecb::ecb(|x,y| f(x,y), input, key),
+        Mode::CBC => cbc::decrypt_cbc(|x,y| f(x,y), input, key, iv.unwrap().as_slice()),
     }
 }
 
@@ -47,8 +47,8 @@ pub fn decrypt(cipher: Cipher, mode: Mode, input: &[u8], key: &[u8], iv: Option<
 mod test {
     use super::{encrypt,
                 decrypt,
-                AES,
-                CBC,
+                Cipher,
+                Mode,
     };
 
     #[test]
@@ -69,7 +69,7 @@ mod test {
                             0x02, 0xDC, 0x09, 0xFB,
                             0xDC, 0x11, 0x85, 0x97,
                             0x19, 0x6a, 0x0B, 0x32];
-        assert_eq!(encrypt(AES, CBC, plain, key, Some(iv)), expected);
+        assert_eq!(encrypt(Cipher::AES, Mode::CBC, plain, key, Some(iv)), expected);
     }
 
     #[test]
@@ -90,6 +90,6 @@ mod test {
                             0x88, 0x5A, 0x30, 0x8D,
                             0x31, 0x31, 0x98, 0xA2,
                             0xE0, 0x37, 0x07, 0x34];
-        assert_eq!(decrypt(AES, CBC, cipher, key, Some(iv)), expected);
+        assert_eq!(decrypt(Cipher::AES, Mode::CBC, cipher, key, Some(iv)), expected);
     }
 }
