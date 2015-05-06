@@ -1,6 +1,12 @@
+#![feature(step_by)]
+#![feature(collections)]
+
+extern crate getopts;
+
 mod aes;
 mod ecb;
 mod cbc;
+mod util;
 
 pub enum Cipher {
     AES,
@@ -22,7 +28,7 @@ pub fn encrypt(cipher: Cipher, mode: Mode, input: &[u8], key: &[u8], iv: Option<
 
     match mode {
         Mode::ECB => ecb::ecb(|x,y| f(x,y), input, key),
-        Mode::CBC => cbc::encrypt_cbc(|x,y| f(x,y), input, key, iv.unwrap().as_slice()),
+        Mode::CBC => cbc::encrypt_cbc(|x,y| f(x,y), input, key, &iv.unwrap()),
     }
 }
 
@@ -37,7 +43,7 @@ pub fn decrypt(cipher: Cipher, mode: Mode, input: &[u8], key: &[u8], iv: Option<
 
     match mode {
         Mode::ECB => ecb::ecb(|x,y| f(x,y), input, key),
-        Mode::CBC => cbc::decrypt_cbc(|x,y| f(x,y), input, key, iv.unwrap().as_slice()),
+        Mode::CBC => cbc::decrypt_cbc(|x,y| f(x,y), input, key, &iv.unwrap()),
     }
 }
 

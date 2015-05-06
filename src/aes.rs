@@ -1,7 +1,7 @@
-use std::iter::range_step_inclusive;
+use util;
 
 // Copied from Wikipedia: http://en.wikipedia.org/w/index.php?title=Rijndael_S-box&oldid=626170897
-static SBOX: [u8, ..256] = [
+static SBOX: [u8; 256] = [
     0x63, 0x7C, 0x77, 0x7B, 0xF2, 0x6B, 0x6F, 0xC5, 0x30, 0x01, 0x67, 0x2B, 0xFE, 0xD7, 0xAB, 0x76,
     0xCA, 0x82, 0xC9, 0x7D, 0xFA, 0x59, 0x47, 0xF0, 0xAD, 0xD4, 0xA2, 0xAF, 0x9C, 0xA4, 0x72, 0xC0,
     0xB7, 0xFD, 0x93, 0x26, 0x36, 0x3F, 0xF7, 0xCC, 0x34, 0xA5, 0xE5, 0xF1, 0x71, 0xD8, 0x31, 0x15,
@@ -20,7 +20,7 @@ static SBOX: [u8, ..256] = [
     0x8C, 0xA1, 0x89, 0x0D, 0xBF, 0xE6, 0x42, 0x68, 0x41, 0x99, 0x2D, 0x0F, 0xB0, 0x54, 0xBB, 0x16];
 
 // Copied from Wikipedia: http://en.wikipedia.org/w/index.php?title=Rijndael_S-box&oldid=626170897
-static INV_SBOX: [u8, ..256] = [
+static INV_SBOX: [u8; 256] = [
     0x52, 0x09, 0x6A, 0xD5, 0x30, 0x36, 0xA5, 0x38, 0xBF, 0x40, 0xA3, 0x9E, 0x81, 0xF3, 0xD7, 0xFB,
     0x7C, 0xE3, 0x39, 0x82, 0x9B, 0x2F, 0xFF, 0x87, 0x34, 0x8E, 0x43, 0x44, 0xC4, 0xDE, 0xE9, 0xCB,
     0x54, 0x7B, 0x94, 0x32, 0xA6, 0xC2, 0x23, 0x3D, 0xEE, 0x4C, 0x95, 0x0B, 0x42, 0xFA, 0xC3, 0x4E,
@@ -40,7 +40,7 @@ static INV_SBOX: [u8, ..256] = [
 
 // Multiplication tables from Wikipedia:
 // http://en.wikipedia.org/w/index.php?title=Rijndael_mix_columns&oldid=606147318#Galois_Multiplication_lookup_tables
-static MUL9: [u8, ..256] = [
+static MUL9: [u8; 256] = [
     0x00, 0x09, 0x12, 0x1b, 0x24, 0x2d, 0x36, 0x3f, 0x48, 0x41, 0x5a, 0x53, 0x6c, 0x65, 0x7e, 0x77,
     0x90, 0x99, 0x82, 0x8b, 0xb4, 0xbd, 0xa6, 0xaf, 0xd8, 0xd1, 0xca, 0xc3, 0xfc, 0xf5, 0xee, 0xe7,
     0x3b, 0x32, 0x29, 0x20, 0x1f, 0x16, 0x0d, 0x04, 0x73, 0x7a, 0x61, 0x68, 0x57, 0x5e, 0x45, 0x4c,
@@ -58,7 +58,7 @@ static MUL9: [u8, ..256] = [
     0xa1, 0xa8, 0xb3, 0xba, 0x85, 0x8c, 0x97, 0x9e, 0xe9, 0xe0, 0xfb, 0xf2, 0xcd, 0xc4, 0xdf, 0xd6,
     0x31, 0x38, 0x23, 0x2a, 0x15, 0x1c, 0x07, 0x0e, 0x79, 0x70, 0x6b, 0x62, 0x5d, 0x54, 0x4f, 0x46];
 
-static MUL11: [u8, ..256] = [
+static MUL11: [u8; 256] = [
     0x00, 0x0b, 0x16, 0x1d, 0x2c, 0x27, 0x3a, 0x31, 0x58, 0x53, 0x4e, 0x45, 0x74, 0x7f, 0x62, 0x69,
     0xb0, 0xbb, 0xa6, 0xad, 0x9c, 0x97, 0x8a, 0x81, 0xe8, 0xe3, 0xfe, 0xf5, 0xc4, 0xcf, 0xd2, 0xd9,
     0x7b, 0x70, 0x6d, 0x66, 0x57, 0x5c, 0x41, 0x4a, 0x23, 0x28, 0x35, 0x3e, 0x0f, 0x04, 0x19, 0x12,
@@ -76,7 +76,7 @@ static MUL11: [u8, ..256] = [
     0x7a, 0x71, 0x6c, 0x67, 0x56, 0x5d, 0x40, 0x4b, 0x22, 0x29, 0x34, 0x3f, 0x0e, 0x05, 0x18, 0x13,
     0xca, 0xc1, 0xdc, 0xd7, 0xe6, 0xed, 0xf0, 0xfb, 0x92, 0x99, 0x84, 0x8f, 0xbe, 0xb5, 0xa8, 0xa3];
 
-static MUL13: [u8, ..256] = [
+static MUL13: [u8; 256] = [
     0x00, 0x0d, 0x1a, 0x17, 0x34, 0x39, 0x2e, 0x23, 0x68, 0x65, 0x72, 0x7f, 0x5c, 0x51, 0x46, 0x4b,
     0xd0, 0xdd, 0xca, 0xc7, 0xe4, 0xe9, 0xfe, 0xf3, 0xb8, 0xb5, 0xa2, 0xaf, 0x8c, 0x81, 0x96, 0x9b,
     0xbb, 0xb6, 0xa1, 0xac, 0x8f, 0x82, 0x95, 0x98, 0xd3, 0xde, 0xc9, 0xc4, 0xe7, 0xea, 0xfd, 0xf0,
@@ -94,7 +94,7 @@ static MUL13: [u8, ..256] = [
     0x0c, 0x01, 0x16, 0x1b, 0x38, 0x35, 0x22, 0x2f, 0x64, 0x69, 0x7e, 0x73, 0x50, 0x5d, 0x4a, 0x47,
     0xdc, 0xd1, 0xc6, 0xcb, 0xe8, 0xe5, 0xf2, 0xff, 0xb4, 0xb9, 0xae, 0xa3, 0x80, 0x8d, 0x9a, 0x97];
 
-static MUL14: [u8, ..256] = [
+static MUL14: [u8; 256] = [
     0x00, 0x0e, 0x1c, 0x12, 0x38, 0x36, 0x24, 0x2a, 0x70, 0x7e, 0x6c, 0x62, 0x48, 0x46, 0x54, 0x5a,
     0xe0, 0xee, 0xfc, 0xf2, 0xd8, 0xd6, 0xc4, 0xca, 0x90, 0x9e, 0x8c, 0x82, 0xa8, 0xa6, 0xb4, 0xba,
     0xdb, 0xd5, 0xc7, 0xc9, 0xe3, 0xed, 0xff, 0xf1, 0xab, 0xa5, 0xb7, 0xb9, 0x93, 0x9d, 0x8f, 0x81,
@@ -113,28 +113,35 @@ static MUL14: [u8, ..256] = [
     0xd7, 0xd9, 0xcb, 0xc5, 0xef, 0xe1, 0xf3, 0xfd, 0xa7, 0xa9, 0xbb, 0xb5, 0x9f, 0x91, 0x83, 0x8d];
 
 // From www.formaestudio.com/rijndaelinspector/archivos/Rijndael_Animation_v4_eng.swfg
-static RCON: [[u8, ..4], ..10] = [
+static RCON: [[u8; 4]; 10] = [
     [0x01, 0, 0, 0], [0x02, 0, 0, 0], [0x04, 0, 0, 0], [0x08, 0, 0, 0],
     [0x10, 0, 0, 0], [0x20, 0, 0, 0], [0x40, 0, 0, 0], [0x80, 0, 0, 0],
     [0x1B, 0, 0, 0], [0x36, 0, 0, 0]];
 
+static SHIFT_ROWS_INV: [u8; 16] = [
+    0, 13, 10,  7,
+    4,  1, 14, 11,
+    8,  5,  2, 15,
+   12,  9,  6,  3];
+
 fn sub_bytes(input: &[u8]) -> Vec<u8> {
-    let result: Vec<u8> = input.iter().map(|&x| SBOX[x as uint]).collect();
+    let result: Vec<u8> = input.iter().map(|&x| SBOX[x as usize]).collect();
     return result;
 }
 
 #[allow(dead_code)]
 fn sub_bytes_inv(input: &[u8]) -> Vec<u8> {
- let result: Vec<u8> = input.iter().map(|&x| INV_SBOX[x as uint]).collect();
+ let result: Vec<u8> = input.iter().map(|&x| INV_SBOX[x as usize]).collect();
     return result;
 }
 
 fn shift_rows(input: &[u8]) -> Vec<u8> {
     assert_eq!(input.len(), 16);
 
-    let result: Vec<u8> = Vec::from_fn(16, |idx| {
-        input[(idx * 4 + idx) % 16]
-    });
+    let mut result: Vec<u8> = Vec::with_capacity(16);
+    for idx in 0..16 {
+        result.push(input[(idx * 4 + idx) % 16]);
+    };
 
     result
 }
@@ -143,8 +150,8 @@ fn shift_rows(input: &[u8]) -> Vec<u8> {
 fn shift_rows_inv(input: &[u8]) -> Vec<u8> {
     assert_eq!(input.len(), 16);
 
-    let result: Vec<u8> = Vec::from_fn(16, |idx| {
-        input[(idx - (4 * idx)) % 16]
+    let result: Vec<u8> = util::vec_from_fn(16, |idx| {
+        input[SHIFT_ROWS_INV[idx] as usize]
     });
 
     result
@@ -159,7 +166,7 @@ fn mix_column(input: &[u8]) -> Vec<u8> {
     let mut h: u8;
     let mut result: Vec<u8> = Vec::with_capacity(4);
 
-    for c in range(0, 4) {
+    for c in 0..4 {
         a.push(input[c]);
         h = ((input[c] as i8) >> 7) as u8;
         b.push(input[c] << 1);
@@ -179,10 +186,10 @@ fn mix_column_inv(v: &[u8]) -> Vec<u8> {
 
     let mut result: Vec<u8> = Vec::with_capacity(4);
 
-    result.push(MUL14[v[0] as uint] ^ MUL11[v[1] as uint] ^ MUL13[v[2] as uint] ^ MUL9[v[3] as uint]);
-    result.push(MUL9[v[0] as uint] ^ MUL14[v[1] as uint] ^ MUL11[v[2] as uint] ^ MUL13[v[3] as uint]);
-    result.push(MUL13[v[0] as uint] ^ MUL9[v[1] as uint] ^ MUL14[v[2] as uint] ^ MUL11[v[3] as uint]);
-    result.push(MUL11[v[0] as uint] ^ MUL13[v[1] as uint] ^ MUL9[v[2] as uint] ^ MUL14[v[3] as uint]);
+    result.push(MUL14[v[0] as usize] ^ MUL11[v[1] as usize] ^ MUL13[v[2] as usize] ^ MUL9[v[3] as usize]);
+    result.push(MUL9[v[0] as usize] ^ MUL14[v[1] as usize] ^ MUL11[v[2] as usize] ^ MUL13[v[3] as usize]);
+    result.push(MUL13[v[0] as usize] ^ MUL9[v[1] as usize] ^ MUL14[v[2] as usize] ^ MUL11[v[3] as usize]);
+    result.push(MUL11[v[0] as usize] ^ MUL13[v[1] as usize] ^ MUL9[v[2] as usize] ^ MUL14[v[3] as usize]);
 
     result
 }
@@ -193,7 +200,7 @@ fn mix_columns(input: &[u8]) -> Vec<u8> {
     let mut result: Vec<u8> = Vec::with_capacity(16);
     for chunk in input.chunks(4) {
         let tmp = mix_column(chunk);
-        result.push_all(tmp.as_slice());
+        result.push_all(&tmp);
     }
 
     result
@@ -205,7 +212,7 @@ fn mix_columns_inv(input: &[u8]) -> Vec<u8> {
     let mut result: Vec<u8> = Vec::with_capacity(16);
     for chunk in input.chunks(4) {
         let tmp = mix_column_inv(chunk);
-        result.push_all(tmp.as_slice());
+        result.push_all(&tmp);
     }
 
     result
@@ -215,17 +222,17 @@ fn add_round_key(input: &[u8], round_key: &[u8]) -> Vec<u8> {
     assert_eq!(input.len(), 16);
     assert_eq!(round_key.len(), 16);
 
-    Vec::from_fn(16, |idx| input[idx] ^ round_key[idx])
+    util::vec_from_fn(16, |idx| input[idx] ^ round_key[idx])
 }
 
 fn round_key(prev: &[u8], rcon: &[u8]) -> Vec<u8> {
     assert_eq!(prev.len(), 16);
     assert_eq!(rcon.len(), 4);
 
-    let mut result = Vec::from_elem(16, 0u8);
-    for idx in range(0, 16) {
+    let mut result = util::vec_from_fn(16, move |_| 0u8);
+    for idx in 0..16 {
         *result.get_mut(idx).expect("Impossible") = if idx < 4 {
-            SBOX[prev[((1 + idx) % 4) + 12] as uint] ^ prev[idx] ^ rcon[idx]
+            SBOX[prev[((1 + idx) % 4) + 12] as usize] ^ prev[idx] ^ rcon[idx]
         } else {
             prev[idx] ^ result[idx-4]
         };
@@ -241,18 +248,18 @@ pub fn encrypt(plaintext: &[u8], key: &[u8]) -> Vec<u8> {
     let mut tmp = add_round_key(plaintext, key);
     let mut key = key.to_vec();
 
-    for round in range(0u, 9) {
-        tmp = sub_bytes(tmp.as_slice());
-        tmp = shift_rows(tmp.as_slice());
-        tmp = mix_columns(tmp.as_slice());
-        key = round_key(key.as_slice(), &RCON[round]);
-        tmp = add_round_key(tmp.as_slice(), key.as_slice());
+    for round in 0usize..9 {
+        tmp = sub_bytes(&tmp);
+        tmp = shift_rows(&tmp);
+        tmp = mix_columns(&tmp);
+        key = round_key(&key, &RCON[round]);
+        tmp = add_round_key(&tmp, &key);
     }
 
-    tmp = sub_bytes(tmp.as_slice());
-    tmp = shift_rows(tmp.as_slice());
-    key = round_key(key.as_slice(), &RCON[9]);
-    tmp = add_round_key(tmp.as_slice(), key.as_slice());
+    tmp = sub_bytes(&tmp);
+    tmp = shift_rows(&tmp);
+    key = round_key(&key, &RCON[9]);
+    tmp = add_round_key(&tmp, &key);
 
     tmp
 }
@@ -263,25 +270,25 @@ pub fn decrypt(cipher: &[u8], key: &[u8]) -> Vec<u8> {
 
     let mut round_keys: Vec<Vec<u8>> = Vec::with_capacity(11);
     round_keys.push(round_key(key, &RCON[0]));
-    for round in range(1u, 10) {
+    for round in 1usize..10 {
         let tmp = {
-            let tmp = round_keys.last().unwrap().as_slice();
+            let tmp = &round_keys.last().unwrap();
             round_key(tmp, &RCON[round])
         };
         round_keys.push(tmp);
     }
 
-    let mut tmp: Vec<u8> = add_round_key(cipher, round_keys[9].as_slice());
-    for round in range_step_inclusive(8i, 0, -1) {
-        tmp = shift_rows_inv(tmp.as_slice());
-        tmp = sub_bytes_inv(tmp.as_slice());
-        tmp = add_round_key(tmp.as_slice(), round_keys[round as uint].as_slice());
-        tmp = mix_columns_inv(tmp.as_slice());
+    let mut tmp: Vec<u8> = add_round_key(cipher, &round_keys[9]);
+    for round in (8..-1).step_by(-1) {
+        tmp = shift_rows_inv(&tmp);
+        tmp = sub_bytes_inv(&tmp);
+        tmp = add_round_key(&tmp, &round_keys[round as usize]);
+        tmp = mix_columns_inv(&tmp);
     }
 
-    tmp = shift_rows_inv(tmp.as_slice());
-    tmp = sub_bytes_inv(tmp.as_slice());
-    tmp = add_round_key(tmp.as_slice(), key);
+    tmp = shift_rows_inv(&tmp);
+    tmp = sub_bytes_inv(&tmp);
+    tmp = add_round_key(&tmp, key);
 
     tmp
 }
@@ -312,7 +319,7 @@ mod test {
     fn test_sub_bytes() {
         let input = vec![0x19u8, 0xA0, 0x9A, 0xE9];
         let output = vec![0xD4u8, 0xE0, 0xB8, 0x1E];
-        assert_eq!(sub_bytes(input.as_slice()), output);
+        assert_eq!(sub_bytes(&input[..]), output);
     }
 
     #[test]
@@ -352,11 +359,11 @@ mod test {
     fn test_mix_column() {
         let input = vec![0xDB, 0x13, 0x53, 0x45];
         let expected = vec![142, 77, 161, 188];
-        assert_eq!(mix_column(input.as_slice()), expected);
+        assert_eq!(mix_column(&input[..]), expected);
 
         let input = vec![0xD4, 0xBF, 0x5D, 0x30];
         let expected = vec![0x04, 0x66, 0x81, 0xE5];
-        assert_eq!(mix_column(input.as_slice()), expected);
+        assert_eq!(mix_column(&input[..]), expected);
     }
 
     #[test]
@@ -429,7 +436,7 @@ mod test {
                              0x7A, 0x96, 0xB9, 0x43,
                              0x59, 0x35, 0x80, 0x7A,
                              0x73, 0x59, 0xF6, 0x7F];
-        assert_eq!(round_key(res1.as_slice(), rcon2), expected2);
+        assert_eq!(round_key(&res1[..], rcon2), expected2);
     }
 
     #[test]
