@@ -200,7 +200,7 @@ fn mix_columns(input: &[u8]) -> Vec<u8> {
     let mut result: Vec<u8> = Vec::with_capacity(16);
     for chunk in input.chunks(4) {
         let tmp = mix_column(chunk);
-        result.push_all(&tmp);
+        result.extend_from_slice(&tmp);
     }
 
     result
@@ -212,7 +212,7 @@ fn mix_columns_inv(input: &[u8]) -> Vec<u8> {
     let mut result: Vec<u8> = Vec::with_capacity(16);
     for chunk in input.chunks(4) {
         let tmp = mix_column_inv(chunk);
-        result.push_all(&tmp);
+        result.extend_from_slice(&tmp);
     }
 
     result

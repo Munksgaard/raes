@@ -1,5 +1,4 @@
 #![feature(step_by)]
-#![feature(collections)]
 
 extern crate getopts;
 

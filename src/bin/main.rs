@@ -1,5 +1,3 @@
-#![feature(std_misc)]
-
 extern crate raes;
 
 extern crate getopts;
@@ -7,7 +5,7 @@ extern crate getopts;
 use std::env;
 use std::io::{stdout, Read, stdin, Write};
 use std::fs::File;
-use std::ascii::OwnedAsciiExt;
+use std::ascii::AsciiExt;
 use getopts::Options;
 use raes::{Cipher, Mode};
 use std::path::Path;
@@ -68,7 +66,7 @@ fn main() {
         };
 
     let cipher = raes::Cipher::AES;
-    let mode = match &matches.opt_str("mode").unwrap_or("ECB".to_string()).into_ascii_uppercase()[..] {
+    let mode = match &matches.opt_str("mode").unwrap_or("ECB".to_string()).to_ascii_uppercase()[..] {
         "ECB" => raes::Mode::ECB,
         "CBC" => raes::Mode::CBC,
         _ => panic!("Unsupported mode"),
