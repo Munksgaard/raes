@@ -4,7 +4,7 @@ extern crate getopts;
 
 mod aes;
 mod ecb;
-pub mod cbc;
+mod cbc;
 mod util;
 
 pub enum Cipher {
@@ -46,8 +46,6 @@ pub fn decrypt(cipher: Cipher, mode: Mode, input: &[u8], key: &[u8], iv: Option<
     }
 }
 
-// FIXME: More comprehensive tests (these only test the first block)
-// FIXME: Tests for ECB.
 #[cfg(test)]
 mod test {
     use super::{encrypt,
@@ -115,6 +113,29 @@ mod test {
         let encrypted = encrypt(Cipher::AES, Mode::CBC, plain, key, Some(iv));
         assert_eq!(decrypt(Cipher::AES,
                            Mode::CBC,
+                           &encrypted,
+                           key,
+                           Some(iv)),
+                   plain);
+    }
+
+    #[test]
+    fn encrypt_and_decrypt_ecb() {
+        let plain = b"Yellow submarineYellow submarine";
+
+        let key = &[21, 74, 153, 147,
+                    244, 100, 141, 128,
+                    30, 176, 207, 176,
+                    202, 11, 105, 107];
+
+        let iv = &[0, 0, 0, 0,
+                   0, 0, 0, 0,
+                   0, 0, 0, 0,
+                   0, 0, 0, 0];
+
+        let encrypted = encrypt(Cipher::AES, Mode::ECB, plain, key, None);
+        assert_eq!(decrypt(Cipher::AES,
+                           Mode::ECB,
                            &encrypted,
                            key,
                            Some(iv)),
