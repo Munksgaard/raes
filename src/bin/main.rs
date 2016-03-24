@@ -20,6 +20,13 @@ enum Operation {
     Decrypt,
 }
 
+fn borrow_option_vec(opt: &Option<Vec<u8>>) -> Option<&[u8]> {
+    match *opt {
+        Some(ref x) => Some(x),
+        None => None,
+    }
+}
+
 fn main() {
     let args: Vec<String> = env::args().collect();
 
@@ -72,7 +79,8 @@ fn main() {
         _ => panic!("Unsupported mode"),
     };
 
-    let iv = matches.opt_str("iv").map(|s| s.into_bytes());
+    let _iv = matches.opt_str("iv").map(|s| s.into_bytes());
+    let iv = borrow_option_vec(&_iv);
 
     match operation {
         Operation::Decrypt => decrypt(cipher, mode, input, key, iv),
@@ -81,7 +89,7 @@ fn main() {
     }
 }
 
-fn encrypt<R: Read+?Sized>(cipher: Cipher, mode: Mode, input: &mut R, key: Option<String>, iv: Option<Vec<u8>>) {
+fn encrypt<R: Read+?Sized>(cipher: Cipher, mode: Mode, input: &mut R, key: Option<String>, iv: Option<&[u8]>) {
     let k = match key {
         Some(k) => k,
         _ => panic!("Need key")
@@ -98,7 +106,7 @@ fn encrypt<R: Read+?Sized>(cipher: Cipher, mode: Mode, input: &mut R, key: Optio
     out.write(&bytes[..]).unwrap();
 }
 
-fn decrypt<R: Read+?Sized>(cipher: Cipher, mode: Mode, input: &mut R, key: Option<String>, iv: Option<Vec<u8>>) {
+fn decrypt<R: Read+?Sized>(cipher: Cipher, mode: Mode, input: &mut R, key: Option<String>, iv: Option<&[u8]>) {
     let k = match key {
         Some(k) => k,
         _ => panic!("Need key")
