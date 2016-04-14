@@ -2,71 +2,15 @@
 
 extern crate getopts;
 
-mod aes;
-mod ecb;
-mod cbc;
-mod ctr;
+pub mod aes;
+pub mod ecb;
+pub mod cbc;
+pub mod ctr;
 mod util;
-
-pub enum Cipher {
-    AES,
-}
-
-pub enum Mode {
-    ECB,
-    CBC,
-    CTR,
-}
-
-#[allow(dead_code)]
-pub fn encrypt(cipher: Cipher, mode: Mode, input: &[u8], key: &[u8], iv: Option<&[u8]>) -> Vec<u8> {
-    assert_eq!(key.len(), 16);
-
-    let f = match cipher {
-        Cipher::AES => aes::encrypt,
-    };
-
-    match mode {
-        Mode::ECB => {
-            assert!(input.len() % 16 == 0);
-            ecb::ecb(|x,y| f(x,y), input, key)
-        },
-        Mode::CBC => {
-            assert!(input.len() % 16 == 0);
-            cbc::encrypt_cbc(|x,y| f(x,y), input, key, &iv.unwrap())
-        },
-        Mode::CTR => ctr::ctr(&f, input, key, 0),
-    }
-}
-
-#[allow(dead_code)]
-pub fn decrypt(cipher: Cipher, mode: Mode, input: &[u8], key: &[u8], iv: Option<&[u8]>) -> Vec<u8> {
-    assert_eq!(key.len(), 16);
-
-    let f = match cipher {
-        Cipher::AES => aes::decrypt,
-    };
-
-    match mode {
-        Mode::ECB => {
-            assert!(input.len() % 16 == 0);
-            ecb::ecb(|x,y| f(x,y), input, key)
-        },
-        Mode::CBC => {
-            assert!(input.len() % 16 == 0);
-            cbc::decrypt_cbc(|x,y| f(x,y), input, key, iv.unwrap())
-        },
-        Mode::CTR => ctr::ctr(aes::encrypt, input, key, 0),
-    }
-}
 
 #[cfg(test)]
 mod test {
-    use super::{encrypt,
-                decrypt,
-                Cipher,
-                Mode,
-    };
+    use super::{aes, ecb, cbc, ctr};
 
     #[test]
     fn test_encrypt_cbc() {
@@ -86,7 +30,7 @@ mod test {
                             0x02, 0xDC, 0x09, 0xFB,
                             0xDC, 0x11, 0x85, 0x97,
                             0x19, 0x6a, 0x0B, 0x32];
-        assert_eq!(encrypt(Cipher::AES, Mode::CBC, plain, key, Some(iv)), expected);
+        assert_eq!(cbc::encrypt(aes::encrypt, plain, key, iv), expected);
     }
 
     #[test]
@@ -107,7 +51,7 @@ mod test {
                             0x88, 0x5A, 0x30, 0x8D,
                             0x31, 0x31, 0x98, 0xA2,
                             0xE0, 0x37, 0x07, 0x34];
-        assert_eq!(decrypt(Cipher::AES, Mode::CBC, cipher, key, Some(iv)), expected);
+        assert_eq!(cbc::decrypt(aes::decrypt, cipher, key, iv), expected);
     }
 
     #[test]
@@ -124,13 +68,8 @@ mod test {
                    0, 0, 0, 0,
                    0, 0, 0, 0];
 
-        let encrypted = encrypt(Cipher::AES, Mode::CBC, plain, key, Some(iv));
-        assert_eq!(decrypt(Cipher::AES,
-                           Mode::CBC,
-                           &encrypted,
-                           key,
-                           Some(iv)),
-                   plain);
+        let encrypted = cbc::encrypt(aes::encrypt, plain, key, iv);
+        assert_eq!(cbc::decrypt(aes::decrypt, &encrypted, key, iv), plain);
     }
 
     #[test]
@@ -147,21 +86,16 @@ mod test {
                    0, 0, 0, 0,
                    0, 0, 0, 0];
 
-        let encrypted = encrypt(Cipher::AES, Mode::ECB, plain, key, None);
-        assert_eq!(decrypt(Cipher::AES,
-                           Mode::ECB,
-                           &encrypted,
-                           key,
-                           Some(iv)),
-                   plain);
+        let encrypted = ecb::ecb(aes::encrypt, plain, key);
+        assert_eq!(ecb::ecb(aes::decrypt, &encrypted, key), plain);
     }
 
     #[test]
     fn encrypt_and_decrypt_ctr() {
         let plain: &[u8] = b"Mary had a little lamb. IH AI IH AI OOOOH! And it was CUTE! I think....";
         let key = b"YELLOW SUBMARINE";
-        let encrypted = encrypt(Cipher::AES, Mode::CTR, plain, key, None);
-        let decrypted = decrypt(Cipher::AES, Mode::CTR, &encrypted, key, None);
+        let encrypted = ctr::ctr(aes::encrypt, plain, key, 0);
+        let decrypted = ctr::ctr(aes::encrypt, &encrypted, key, 0);
 
         assert_eq!(decrypted, plain);
     }

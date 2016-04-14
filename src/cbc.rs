@@ -1,4 +1,4 @@
-pub fn encrypt_cbc<F>(f: F, plain: &[u8], key: &[u8], iv: &[u8]) -> Vec<u8>
+pub fn encrypt<F>(f: F, plain: &[u8], key: &[u8], iv: &[u8]) -> Vec<u8>
 where F: Fn(&[u8], &[u8]) -> Vec<u8>
 {
     assert_eq!(key.len(), 16);
@@ -22,7 +22,7 @@ where F: Fn(&[u8], &[u8]) -> Vec<u8>
     result
 }
 
-pub fn decrypt_cbc<F>(f: F, cipher: &[u8], key: &[u8], iv: &[u8]) -> Vec<u8>
+pub fn decrypt<F>(f: F, cipher: &[u8], key: &[u8], iv: &[u8]) -> Vec<u8>
 where F: Fn(&[u8], &[u8]) -> Vec<u8>
 {
     assert_eq!(key.len(), 16);
