@@ -5,6 +5,7 @@ extern crate getopts;
 mod aes;
 mod ecb;
 mod cbc;
+mod ctr;
 mod util;
 
 pub enum Cipher {
@@ -14,35 +15,48 @@ pub enum Cipher {
 pub enum Mode {
     ECB,
     CBC,
+    CTR,
 }
 
 #[allow(dead_code)]
 pub fn encrypt(cipher: Cipher, mode: Mode, input: &[u8], key: &[u8], iv: Option<&[u8]>) -> Vec<u8> {
     assert_eq!(key.len(), 16);
-    assert!(input.len() % 16 == 0);
 
     let f = match cipher {
         Cipher::AES => aes::encrypt,
     };
 
     match mode {
-        Mode::ECB => ecb::ecb(|x,y| f(x,y), input, key),
-        Mode::CBC => cbc::encrypt_cbc(|x,y| f(x,y), input, key, &iv.unwrap()),
+        Mode::ECB => {
+            assert!(input.len() % 16 == 0);
+            ecb::ecb(|x,y| f(x,y), input, key)
+        },
+        Mode::CBC => {
+            assert!(input.len() % 16 == 0);
+            cbc::encrypt_cbc(|x,y| f(x,y), input, key, &iv.unwrap())
+        },
+        Mode::CTR => ctr::ctr(&f, input, key, 0),
     }
 }
 
 #[allow(dead_code)]
 pub fn decrypt(cipher: Cipher, mode: Mode, input: &[u8], key: &[u8], iv: Option<&[u8]>) -> Vec<u8> {
     assert_eq!(key.len(), 16);
-    assert!(input.len() % 16 == 0);
 
     let f = match cipher {
         Cipher::AES => aes::decrypt,
     };
 
     match mode {
-        Mode::ECB => ecb::ecb(|x,y| f(x,y), input, key),
-        Mode::CBC => cbc::decrypt_cbc(|x,y| f(x,y), input, key, iv.unwrap()),
+        Mode::ECB => {
+            assert!(input.len() % 16 == 0);
+            ecb::ecb(|x,y| f(x,y), input, key)
+        },
+        Mode::CBC => {
+            assert!(input.len() % 16 == 0);
+            cbc::decrypt_cbc(|x,y| f(x,y), input, key, iv.unwrap())
+        },
+        Mode::CTR => ctr::ctr(aes::encrypt, input, key, 0),
     }
 }
 
@@ -140,5 +154,15 @@ mod test {
                            key,
                            Some(iv)),
                    plain);
+    }
+
+    #[test]
+    fn encrypt_and_decrypt_ctr() {
+        let plain: &[u8] = b"Mary had a little lamb. IH AI IH AI OOOOH! And it was CUTE! I think....";
+        let key = b"YELLOW SUBMARINE";
+        let encrypted = encrypt(Cipher::AES, Mode::CTR, plain, key, None);
+        let decrypted = decrypt(Cipher::AES, Mode::CTR, &encrypted, key, None);
+
+        assert_eq!(decrypted, plain);
     }
 }
