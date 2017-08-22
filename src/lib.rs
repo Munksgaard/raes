@@ -1,4 +1,5 @@
-#![feature(step_by)]
+#![feature(iterator_step_by)]
+#![feature(inclusive_range_syntax)]
 
 extern crate getopts;
 

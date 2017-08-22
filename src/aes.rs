@@ -248,7 +248,7 @@ pub fn encrypt(plaintext: &[u8], key: &[u8]) -> Vec<u8> {
     let mut tmp = add_round_key(plaintext, key);
     let mut key = key.to_vec();
 
-    for round in 0usize..9 {
+    for round in 0...8 {
         tmp = sub_bytes(&tmp);
         tmp = shift_rows(&tmp);
         tmp = mix_columns(&tmp);
@@ -279,10 +279,10 @@ pub fn decrypt(cipher: &[u8], key: &[u8]) -> Vec<u8> {
     }
 
     let mut tmp: Vec<u8> = add_round_key(cipher, &round_keys[9]);
-    for round in (8..-1).step_by(-1) {
+    for round in (0...8).step_by(1) {
         tmp = shift_rows_inv(&tmp);
         tmp = sub_bytes_inv(&tmp);
-        tmp = add_round_key(&tmp, &round_keys[round as usize]);
+        tmp = add_round_key(&tmp, &round_keys[8 - round]);
         tmp = mix_columns_inv(&tmp);
     }
 
