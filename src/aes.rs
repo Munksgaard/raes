@@ -125,14 +125,12 @@ static SHIFT_ROWS_INV: [u8; 16] = [
    12,  9,  6,  3];
 
 fn sub_bytes(input: &[u8]) -> Vec<u8> {
-    let result: Vec<u8> = input.iter().map(|&x| SBOX[x as usize]).collect();
-    return result;
+    input.iter().map(|&x| SBOX[x as usize]).collect()
 }
 
 #[allow(dead_code)]
 fn sub_bytes_inv(input: &[u8]) -> Vec<u8> {
- let result: Vec<u8> = input.iter().map(|&x| INV_SBOX[x as usize]).collect();
-    return result;
+    input.iter().map(|&x| INV_SBOX[x as usize]).collect()
 }
 
 fn shift_rows(input: &[u8]) -> Vec<u8> {

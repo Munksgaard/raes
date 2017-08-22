@@ -60,13 +60,11 @@ pub fn ctr<F>(f: F, plain: &[u8], key: &[u8], nonce: u64) -> Vec<u8>
 
     assert_eq!(16, key.len());
 
-    let mut count = 0;
     let mut buf = Vec::new();
 
-    for block in plain.chunks(16) {
-        let tmp = ctr_block(&f, block, key, nonce, count);
+    for (count, block) in plain.chunks(16).enumerate() {
+        let tmp = ctr_block(&f, block, key, nonce, count as u64);
         buf.extend_from_slice(&tmp);
-        count += 1;
     }
 
     buf

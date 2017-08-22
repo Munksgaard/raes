@@ -3,7 +3,7 @@ where F: Fn(&[u8], &[u8]) -> Vec<u8>
 {
     assert_eq!(key.len(), 16);
     assert_eq!(iv.len(), 16);
-    assert!(plain.len() % 16 == 0);
+    assert_eq!(plain.len() % 16, 0);
 
     let mut iv = iv.to_vec();
     let mut result: Vec<u8> = Vec::new();
@@ -27,7 +27,7 @@ where F: Fn(&[u8], &[u8]) -> Vec<u8>
 {
     assert_eq!(key.len(), 16);
     assert_eq!(iv.len(), 16);
-    assert!(cipher.len() % 16 == 0);
+    assert_eq!(cipher.len() % 16, 0);
 
     let mut iv = iv.to_vec();
 
