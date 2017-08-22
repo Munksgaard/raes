@@ -82,11 +82,6 @@ mod test {
                     30, 176, 207, 176,
                     202, 11, 105, 107];
 
-        let iv = &[0, 0, 0, 0,
-                   0, 0, 0, 0,
-                   0, 0, 0, 0,
-                   0, 0, 0, 0];
-
         let encrypted = ecb::ecb(aes::encrypt, plain, key);
         assert_eq!(ecb::ecb(aes::decrypt, &encrypted, key), plain);
     }
